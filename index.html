@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Weather App</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="pr.css">
+</head>
+<body>
+    <div class="container mt-5">
+        <h1 class="text-center">Weather App</h1>
+        <div class="form-group">
+            <input type="text" class="form-control text-center" id="cityInput" placeholder="Enter a city">
+        </div>
+        <button class="btn btn-primary" id="fetchWeatherButton">Get Weather</button>
+        <div class="current-weather mt-4 text-center">
+            <p id="time" class="mb-0">Current Time: N/A</p>
+            <p id="temperature" class="mb-0">Temperature: N/A</p>
+            <p id="condition" class="mb-0">Condition: N/A</p>
+            <p id="humidity" class="mb-0">Humidity: N/A</p>
+            <p id="windSpeed" class="mb-0">Wind Speed: N/A</p>
+        </div>
+        <div class="clock-container">
+            <div id="clock" class="text-center">12:00:00 AM</div>
+        </div>
+    </div>
+
+    <script>
+        let apiKey = '31673a21180994a3c41e97cfdf993211';
+        let defaultCity = 'Kochi';
+
+        function getAndDisplayWeather() {
+            let city = document.getElementById('cityInput').value || defaultCity;
+            let apiUrl = `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}`;
+            fetch(apiUrl)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    let temperatureInCelsius = data.main.temp - 273.15;
+                    data.main.temp = temperatureInCelsius;
+                    displayCurrentWeather(data);
+                })
+                .catch(error => {
+                    console.error("Error fetching weather data: " + error);
+                });
+        }
+
+        function displayCurrentWeather(data) {
+            let currentWeatherElement = document.querySelector('.current-weather');
+            let weatherCondition = document.createElement('p');
+            weatherCondition.textContent = `Condition: ${data.weather[0].description}`;
+            let temperature = document.createElement('p');
+            temperature.textContent = `Temperature: ${data.main.temp.toFixed(2)}°C`;
+            let humidity = document.createElement('p');
+            humidity.textContent = `Humidity: ${data.main.humidity}%`;
+            let windSpeed = document.createElement('p');
+            windSpeed.textContent = `Wind Speed: ${data.wind.speed} m/s`;
+            currentWeatherElement.innerHTML = '';
+            currentWeatherElement.appendChild(weatherCondition);
+            currentWeatherElement.appendChild(temperature);
+            currentWeatherElement.appendChild(humidity);
+            currentWeatherElement.appendChild(windSpeed);
+        }
+
+        function updateClock() {
+            const clockElement = document.getElementById('clock');
+            const currentTime = new Date();
+            const hours = currentTime.getHours();
+            const minutes = currentTime.getMinutes();
+            const seconds = currentTime.getSeconds();
+            const ampm = hours >= 12 ? 'PM' : 'AM';
+            const hours12 = hours % 12 || 12;
+            const paddedMinutes = minutes < 10 ? '0' + minutes : minutes;
+            const paddedSeconds = seconds < 10 ? '0' + seconds : seconds;
+            const timeString = `${hours12}:${paddedMinutes}:${paddedSeconds} ${ampm}`;
+            clockElement.textContent = timeString;
+        }
+
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        window.addEventListener('load', getAndDisplayWeather);
+        document.getElementById('fetchWeatherButton').addEventListener('click', getAndDisplayWeather);
+    </script>
+</body>
+</html>
+
